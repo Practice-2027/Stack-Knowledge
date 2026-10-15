@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile & JWT Inspector</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --jwt-header: #f87171;
+            --jwt-payload: #c084fc;
+            --jwt-signature: #38bdf8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #e2e8f0;
+            border-color: var(--card-border);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #64748b;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .alert-flash {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success);
+            color: #6ee7b7;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+        }
+
+        .avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .info-pill {
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
+            word-break: break-all;
+        }
+
+        .scope-badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 4px;
+            margin-top: 4px;
+        }
+
+        /* JWT Inspector Section */
+        .jwt-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .jwt-legend {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .raw-jwt-container {
+            background: #090d16;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 13px;
+            word-break: break-all;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .jwt-part-header { color: var(--jwt-header); font-weight: 600; }
+        .jwt-dot { color: #64748b; font-weight: bold; }
+        .jwt-part-payload { color: var(--jwt-payload); font-weight: 600; }
+        .jwt-part-sig { color: var(--jwt-signature); font-weight: 600; }
+
+        .jwt-decoded-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .jwt-decoded-grid { grid-template-columns: 1fr; }
+        }
+
+        .decoded-box {
+            background: #090d16;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .decoded-header {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        pre {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-bar">
+            <div>
+                <a href="/" class="btn btn-outline">← Back to Home</a>
+            </div>
+            <div class="nav-links">
+                <a href="/data" class="btn btn-primary">View Protected Data</a>
+                <a href="/refresh-token" class="btn btn-outline" style="border-color: #818cf8; color: #a5b4fc;">↻ Refresh Token</a>
+                <a href="/logout" class="btn btn-danger">Log Out</a>
+            </div>
+        </div>
+
+        {% if message %}
+        <div class="alert-flash">{{ message }}</div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert-error">{{ error }}</div>
+        {% endif %}
+
+        <!-- Profile details from Resource Server -->
+        <div class="card">
+            <div class="profile-header">
+                <div class="avatar">{{ user.get('name', 'U')[0].upper() }}</div>
+                <div>
+                    <span style="font-size: 11px; font-weight: 700; color: #10b981; letter-spacing: 0.05em; text-transform: uppercase;">Verified by Resource Server (Port 5004)</span>
+                    <h1 style="font-size: 24px; font-weight: 700; margin-top: 2px;">{{ user.get('name') }}</h1>
+                    <p style="color: var(--text-muted); font-size: 14px;">Username: <strong>@{{ user.get('username') }}</strong> • Email: {{ user.get('email') }}</p>
+                </div>
+            </div>
+
+            <div class="profile-grid">
+                <div class="info-pill">
+                    <div class="info-label">Issuer (iss)</div>
+                    <div class="info-value">{{ user.get('issuer') }}</div>
+                </div>
+                <div class="info-pill">
+                    <div class="info-label">Audience (aud)</div>
+                    <div class="info-value">{{ user.get('audience') }}</div>
+                </div>
+                <div class="info-pill">
+                    <div class="info-label">Granted Scopes</div>
+                    <div class="info-value">
+                        {% for sc in user.get('scopes_list', []) %}
+                        <span class="scope-badge">{{ sc }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="info-pill">
+                    <div class="info-label">Token Expires At</div>
+                    <div class="info-value" id="exp-text">{{ expires_readable }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- JWT Interactive Inspector Card -->
+        <div class="card">
+            <div class="jwt-title">
+                <div>
+                    <h2 style="font-size: 18px; font-weight: 700;">JWT Access Token Inspector</h2>
+                    <p style="font-size: 13px; color: var(--text-muted);">See how the IDP structured and cryptographically signed your token.</p>
+                </div>
+                <div class="jwt-legend">
+                    <div class="legend-item"><span class="dot" style="background: var(--jwt-header);"></span> Header</div>
+                    <div class="legend-item"><span class="dot" style="background: var(--jwt-payload);"></span> Payload</div>
+                    <div class="legend-item"><span class="dot" style="background: var(--jwt-signature);"></span> Signature</div>
+                </div>
+            </div>
+
+            <div class="raw-jwt-container">
+                <span class="jwt-part-header">{{ raw_token_header }}</span><span class="jwt-dot">.</span><span class="jwt-part-payload">{{ raw_token_payload }}</span><span class="jwt-dot">.</span><span class="jwt-part-sig">{{ raw_token_sig }}</span>
+            </div>
+
+            <div class="jwt-decoded-grid">
+                <!-- Header Box -->
+                <div class="decoded-box">
+                    <div class="decoded-header" style="color: var(--jwt-header);">
+                        <span>HEADER: ALGORITHM & KEY ID</span>
+                    </div>
+                    <pre>{{ decoded_header_json }}</pre>
+                </div>
+
+                <!-- Payload Box -->
+                <div class="decoded-box">
+                    <div class="decoded-header" style="color: var(--jwt-payload);">
+                        <span>PAYLOAD: CLAIMS (IDENTITY DATA)</span>
+                    </div>
+                    <pre>{{ decoded_payload_json }}</pre>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 14px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; font-size: 13px; color: #bae6fd;">
+                <strong>Cryptographic Verification:</strong>
+                The Resource Server at Port 5004 verified this token's signature using the IDP's RSA Public Key retrieved from <code>http://localhost:5003/jwks</code>. The Resource Server never needed to contact the database or know the user's password!
+            </div>
+        </div>
+    </div>
+</body>
+</html>

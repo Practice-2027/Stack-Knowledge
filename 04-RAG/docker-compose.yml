@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  rag-app:
+    build: .
+    container_name: rag_document_qa
+    ports:
+      - "5006:5006"
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

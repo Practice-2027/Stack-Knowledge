@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protected Resources - Client App</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --accent: #8b5cf6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #e2e8f0;
+            border-color: var(--card-border);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #64748b;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .alert-flash {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success);
+            color: #6ee7b7;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .badge-port {
+            display: inline-block;
+            background: #064e3b;
+            color: #6ee7b7;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .doc-list {
+            display: grid;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .doc-item {
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .doc-item:hover {
+            border-color: #6366f1;
+        }
+
+        .doc-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .doc-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .doc-cat {
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            border: 1px solid #8b5cf6;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .doc-content {
+            font-size: 14px;
+            color: #cbd5e1;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .doc-date {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #6366f1;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .info-callout {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid #6366f1;
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+            color: #c7d2fe;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-bar">
+            <div>
+                <a href="/" class="btn btn-outline">← Back to Home</a>
+            </div>
+            <div class="nav-links">
+                <a href="/profile" class="btn btn-outline">Profile & JWT Inspector</a>
+                <a href="/logout" class="btn btn-danger">Log Out</a>
+            </div>
+        </div>
+
+        {% if message %}
+        <div class="alert-flash">{{ message }}</div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert-error">{{ error }}</div>
+        {% endif %}
+
+        <div class="info-callout">
+            <strong>Resource Server Security Verification:</strong>
+            These documents are stored securely on the Protected Resource Server (Port 5004). The Client App sent your RS256 Bearer JWT in the <code>Authorization</code> header. The Resource Server verified the token's signature against the IDP's public key (Port 5003) and checked for the required <code>read</code> and <code>write</code> scopes before granting access.
+        </div>
+
+        <!-- Document List -->
+        <div class="card">
+            <span class="badge-port">Resource Server API (GET /api/data)</span>
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px;">Confidential Documents for @{{ username }}</h2>
+            <p style="color: var(--text-muted); font-size: 13px;">Total documents retrieved: <strong>{{ documents|length }}</strong></p>
+
+            {% if documents %}
+            <div class="doc-list">
+                {% for doc in documents %}
+                <div class="doc-item">
+                    <div class="doc-top">
+                        <span class="doc-title">{{ doc.title }}</span>
+                        <span class="doc-cat">{{ doc.category }}</span>
+                    </div>
+                    <div class="doc-content">{{ doc.content }}</div>
+                    <div class="doc-date">Created: {{ doc.created_at }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); margin-top: 16px; font-size: 14px;">No confidential documents found. Use the form below to create your first document!</p>
+            {% endif %}
+        </div>
+
+        <!-- Add Document Form -->
+        <div class="card">
+            <span class="badge-port">Resource Server API (POST /api/data)</span>
+            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Create New Protected Document</h2>
+
+            <form method="POST" action="/data">
+                <div class="form-group">
+                    <label for="title">Document Title</label>
+                    <input type="text" id="title" name="title" placeholder="e.g. Next-Gen Authentication Strategy" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <input type="text" id="category" name="category" placeholder="e.g. Engineering, Security, Notes" value="General">
+                </div>
+
+                <div class="form-group">
+                    <label for="content">Document Content</label>
+                    <textarea id="content" name="content" placeholder="Enter confidential details..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Document (Scope: write)</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

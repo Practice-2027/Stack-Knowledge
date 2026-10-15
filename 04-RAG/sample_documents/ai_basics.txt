@@ -1,0 +1,30 @@
+# Artificial Intelligence Fundamentals: An Introductory Guide
+
+Artificial Intelligence (AI) refers to the simulation of human intelligence in machines programmed to think, reason, learn, and solve problems. Historically conceived in the mid-twentieth century, AI has evolved from rule-based expert systems into modern data-driven architectures capable of processing language, recognizing images, and making complex autonomous decisions.
+
+## Core Branches of Artificial Intelligence
+
+Artificial intelligence is broadly categorized into two philosophical tiers: Artificial Narrow Intelligence (ANI) and Artificial General Intelligence (AGI). 
+
+Narrow AI, often termed Weak AI, is designed to perform a dedicated task with high proficiency. Examples include facial recognition systems, internet search algorithms, chess engines, and language translators. Today, virtually all real-world AI applications represent Narrow AI. In contrast, General AI (AGI) describes hypothetical systems that possess human-level cognitive flexibility, capable of understanding and learning novel intellectual domains without task-specific retraining.
+
+Within modern AI lies Machine Learning (ML), a foundational discipline where algorithms identify patterns in large datasets rather than following rigid, handcrafted programming rules. Machine Learning is further divided into supervised learning (learning with labeled input-output pairs), unsupervised learning (discovering hidden patterns or clusters in unlabeled data), and reinforcement learning (learning optimal behaviors through trial, error, and reward signals).
+
+## Deep Learning and Neural Networks
+
+Deep Learning represents a subfield of Machine Learning inspired by biological neural structures. Deep neural networks consist of an input layer, multiple hidden layers, and an output layer. As data flows through these layers, the network automatically discovers hierarchical feature representations. For instance, in computer vision, early layers might detect raw edges and lines, intermediate layers identify shapes and textures, and deeper layers recognize complex objects like human faces or vehicles.
+
+Transformer architectures, introduced in 2017, revolutionized natural language processing by introducing the self-attention mechanism. Unlike sequential recurrent neural networks, transformers process entire text sequences simultaneously, capturing contextual relationships across long distances. This breakthrough paved the way for Large Language Models (LLMs) such as GPT, BERT, and T5.
+
+## Training vs. Inference
+
+AI development is structured into two distinct operational phases: training and inference.
+During training, a model is exposed to vast datasets. It calculates errors using a loss function and adjusts internal mathematical parameters (weights and biases) using optimization algorithms like gradient descent. Training demands substantial computational power, often requiring clusters of specialized Graphics Processing Units (GPUs) or Tensor Processing Units (TPUs) over days or months.
+
+During inference, the trained model is deployed to make predictions or generate answers for unseen input data. Inference requires substantially fewer resources than training, enabling models to run on servers, personal computers, and mobile devices.
+
+## The Challenge of Hallucinations and the Role of RAG
+
+While modern language models demonstrate remarkable fluency, they possess notable limitations. Most prominently, models can "hallucinate"—generating confident, articulate statements that are factually incorrect or fabricated. Furthermore, pre-trained models suffer from static knowledge cutoffs; they have no awareness of events, scientific breakthroughs, or private company records created after their training concluded.
+
+To overcome these barriers without the immense expense of retraining or fine-tuning, engineers developed Retrieval-Augmented Generation (RAG). RAG grounds AI responses by dynamically searching external reference documents, retrieving authoritative passages, and passing those facts directly into the model's context window. This architecture ensures transparency, accuracy, verifiable citations, and continuously up-to-date knowledge.

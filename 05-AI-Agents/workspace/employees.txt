@@ -1,0 +1,51 @@
+================================================================================
+                    COMPANY EMPLOYEE DIRECTORY - 2026
+================================================================================
+
+ID: EMP001
+Name: Alice Walker
+Role: Lead Renewable Energy Engineer
+Department: Engineering
+Email: alice.walker@cleanenergy.corp
+Joined: 2021-03-15
+Skills: Solar PV Design, High-Voltage Inverters, Microgrids, Python Modeling
+
+ID: EMP002
+Name: Bob Martinez
+Role: Senior Field Operations Specialist
+Department: Operations
+Email: bob.martinez@cleanenergy.corp
+Joined: 2020-08-01
+Skills: Wind Turbine Maintenance, Site Auditing, Storage Battery Safety, SCADA
+
+ID: EMP003
+Name: Charlie Chen
+Role: Staff Power Electronics Architect
+Department: Engineering
+Email: charlie.chen@cleanenergy.corp
+Joined: 2019-11-20
+Skills: MPPT Algorithms, Thermal Management, Firmware, PCB Layout
+
+ID: EMP004
+Name: Diana Prince
+Role: Regional Sales Director (West)
+Department: Sales & Marketing
+Email: diana.prince@cleanenergy.corp
+Joined: 2022-01-10
+Skills: Commercial Energy Contracts, Client Relations, Financial ROI Analysis
+
+ID: EMP005
+Name: Evan Ross
+Role: Data Science & Forecasting Lead
+Department: Analytics
+Email: evan.ross@cleanenergy.corp
+Joined: 2023-05-18
+Skills: Machine Learning, Energy Yield Forecasting, Time Series, Python, Pandas
+
+ID: EMP006
+Name: Fiona Gallagher
+Role: Compliance & Environmental Officer
+Department: Regulatory Affairs
+Email: fiona.gallagher@cleanenergy.corp
+Joined: 2021-09-01
+Skills: ISO 14001, Carbon Offset Auditing, Grid Interconnection Standards

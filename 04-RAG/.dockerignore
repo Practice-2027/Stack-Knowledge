@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.venv/
+env/
+venv/
+.git/
+.gitignore
+.vscode/
+.idea/
+data/chroma_db/
+uploads/*
+!uploads/.gitkeep

@@ -1,0 +1,37 @@
+# Docker Compose file for Keycloak Identity and Access Management Server
+# Version: 3.8
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak-server
+    # Run in development mode with local H2 in-memory/file database and relaxed HTTPS
+    command: start-dev
+    environment:
+      # Keycloak Initial Admin Credentials (supports Keycloak 18 through 25)
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+
+      # Bootstrap Admin Credentials (for Keycloak 26+)
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+      # Enable built-in health check endpoints (/health/ready, /health/live)
+      KC_HEALTH_ENABLED: "true"
+
+      # Enable metrics monitoring
+      KC_METRICS_ENABLED: "true"
+
+      # HTTP relative path (root)
+      KC_HTTP_RELATIVE_PATH: "/"
+    ports:
+      # Map container port 8080 to host port 8088 (avoids collision with Apache on 8080)
+      - "8088:8080"
+    healthcheck:
+      # Keycloak container does not include curl; we use bash's built-in /dev/tcp socket
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 25s
+    restart: unless-stopped

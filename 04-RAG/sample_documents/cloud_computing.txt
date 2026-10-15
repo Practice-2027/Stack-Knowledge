@@ -1,0 +1,32 @@
+# Cloud Computing Architecture: Infrastructure, Platforms, and Strategies
+
+Cloud computing represents the on-demand availability of computer system resources—especially data storage (cloud storage) and computing power (CPU and GPU instances)—without direct active management by the user. Rather than purchasing, deploying, and maintaining physical servers in on-premises server closets, organizations provision computing infrastructure over the internet through a utility-based pricing model.
+
+## Primary Service Models
+
+Cloud computing solutions are traditionally divided into three distinct service models:
+
+1. Infrastructure as a Service (IaaS): Provides fundamental computing building blocks including physical or virtual machines, network configurations, firewalls, and block storage. Customers manage operating systems, middleware, and application runtime environments, while cloud providers manage physical hardware and virtualization layers. Examples include Amazon EC2, Google Compute Engine, and Azure Virtual Machines.
+
+2. Platform as a Service (PaaS): Provides a managed platform for software developers to build, test, deploy, and scale applications without worrying about operating system patching, hardware provisioning, or network routing. Examples include AWS Elastic Beanstalk, Heroku, and Google App Engine.
+
+3. Software as a Service (SaaS): Delivers fully functioning end-user software applications accessed through web browsers or lightweight client interfaces. Maintenance, security updates, and underlying infrastructure management are handled entirely by the service vendor. Examples include Google Workspace, Microsoft 365, and Salesforce.
+
+## Deployment Architectures
+
+Organizations structure cloud environments across three main deployment archetypes:
+- Public Cloud: Services are owned and operated by third-party cloud providers, delivering computational resources over the public internet to multi-tenant consumers.
+- Private Cloud: Infrastructure is provisioned for exclusive use by a single organization, either hosted internally in an enterprise data center or managed by a third-party vendor off-site.
+- Hybrid Cloud: Combines public and private cloud environments with orchestration and portability between them, allowing organizations to keep sensitive workloads on-premises while bursting compute-heavy tasks to the public cloud.
+
+## Scalability, High Availability, and Fault Tolerance
+
+A cornerstone advantage of cloud systems is horizontal scalability (scaling out), adding additional instances in response to fluctuating user traffic, contrasted with vertical scalability (scaling up), which upgrades the memory or processing cores of a single instance.
+
+High availability ensures applications remain operational and accessible even during hardware failures. Cloud providers achieve this through geographically isolated regions and availability zones connected via high-speed, redundant fiber networks. Load balancers distribute incoming network traffic smoothly across healthy application instances, preventing any single machine from becoming a single point of failure.
+
+## Modern Trends: Serverless and Cost Optimization
+
+Modern cloud adoption centers on Serverless Computing (Function as a Service, or FaaS), where developers write application logic executed in ephemeral containers without provisioning servers. Billing occurs strictly per execution millisecond, eliminating idle hosting costs.
+
+FinOps—the discipline of cloud financial management—has emerged to optimize operational expenditures. Techniques include purchasing reserved instances for predictable workloads, adopting spot instances for fault-tolerant background processing, and implementing automated shutdown schedules for non-production environments.

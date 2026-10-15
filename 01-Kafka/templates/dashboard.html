@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kafka Task Queue System - Dashboard</title>
+  <style>
+    /* -----------------------------------------------------------------------
+       Design System: Clean, Modern, Self-Contained UI (No External CDNs)
+       ----------------------------------------------------------------------- */
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-hover: #0ea5e9;
+      --success: #22c55e;
+      --success-bg: rgba(34, 197, 94, 0.15);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.15);
+      --info: #0284c7;
+      --info-bg: rgba(2, 132, 199, 0.15);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.5;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .header-title h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-title p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .refresh-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.9); }
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stat-info h3 {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-info .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 4px;
+      color: #ffffff;
+    }
+
+    /* Forms & Inputs */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr auto;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .form-input, .form-select {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      background: var(--primary);
+      color: #0f172a;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Quick Fill Buttons */
+    .quick-samples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    .quick-samples span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .sample-pill {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      color: var(--primary);
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sample-pill:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--primary);
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #141f32;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--card-border);
+      vertical-align: middle;
+    }
+
+    tbody tr:hover {
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .badge-queued {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-processing {
+      background: var(--info-bg);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      animation: pulse 1.5s infinite;
+    }
+
+    .badge-completed {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .priority-high {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .priority-medium {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .priority-low {
+      background: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .task-id {
+      font-family: monospace;
+      color: var(--primary);
+      font-size: 13px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    /* Notification Banner */
+    #alertBanner {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-title">
+        <h1>
+          <span>⚡</span>
+          <span>Apache Kafka Task Queue System</span>
+        </h1>
+        <p>Real-time distributed streaming pipeline: Flask Producer &rarr; Kafka Broker &rarr; Consumer Worker</p>
+      </div>
+      <div class="refresh-badge">
+        <span class="pulse-dot"></span>
+        <span>Auto-refreshing in <strong id="countdown">5</strong>s</span>
+        <button id="manualRefreshBtn" style="background: none; border: none; color: var(--primary); cursor: pointer; text-decoration: underline; margin-left: 8px;">Refresh Now</button>
+      </div>
+    </header>
+
+    <!-- Feedback Banner -->
+    <div id="alertBanner"></div>
+
+    <!-- Summary Metrics -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>Total Tasks</h3>
+          <div class="stat-value" id="statTotal">{{ tasks|length }}</div>
+        </div>
+        <span style="font-size: 30px;">📋</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>Queued in Kafka</h3>
+          <div class="stat-value" id="statQueued" style="color: var(--warning);">
+            {{ tasks|selectattr("status", "equalto", "QUEUED")|list|length }}
+          </div>
+        </div>
+        <span style="font-size: 30px;">⏳</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>In Processing</h3>
+          <div class="stat-value" id="statProcessing" style="color: #38bdf8;">
+            {{ tasks|selectattr("status", "equalto", "PROCESSING")|list|length }}
+          </div>
+        </div>
+        <span style="font-size: 30px;">⚙️</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <h3>Completed</h3>
+          <div class="stat-value" id="statCompleted" style="color: var(--success);">
+            {{ tasks|selectattr("status", "equalto", "COMPLETED")|list|length }}
+          </div>
+        </div>
+        <span style="font-size: 30px;">✅</span>
+      </div>
+    </section>
+
+    <!-- Submit Task Form Card -->
+    <section class="card">
+      <h2><span>➕</span> Submit New Task to Kafka Queue</h2>
+      <form id="taskForm" action="/submit-task" method="POST">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="taskName">Task Description</label>
+            <input type="text" id="taskName" name="task_name" class="form-input" placeholder="e.g. Resize customer profile photo" required>
+          </div>
+          <div class="form-group">
+            <label for="priority">Execution Priority</label>
+            <select id="priority" name="priority" class="form-select">
+              <option value="HIGH">HIGH (Fast-track ~2s)</option>
+              <option value="MEDIUM" selected>MEDIUM (Standard ~3.5s)</option>
+              <option value="LOW">LOW (Background ~5s)</option>
+            </select>
+          </div>
+          <div>
+            <button type="submit" id="submitBtn" class="btn">
+              <span>🚀</span> Enqueue Task
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Quick sample shortcuts for beginner exploration -->
+      <div class="quick-samples">
+        <span>Try quick samples:</span>
+        <button type="button" class="sample-pill" onclick="fillForm('Send Welcome Email to User #1042', 'HIGH')">📧 Send Email (HIGH)</button>
+        <button type="button" class="sample-pill" onclick="fillForm('Generate Monthly Financial PDF Report', 'MEDIUM')">📊 Generate Report (MEDIUM)</button>
+        <button type="button" class="sample-pill" onclick="fillForm('Compress 4K Video Upload', 'LOW')">🎬 Compress Video (LOW)</button>
+      </div>
+    </section>
+
+    <!-- Task List Table Card -->
+    <section class="card">
+      <h2><span>📑</span> Live Task Queue Status (Topic: 'task-queue')</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Task ID</th>
+              <th>Task Name</th>
+              <th>Priority</th>
+              <th>Submitted At</th>
+              <th>Completed At</th>
+              <th>Duration</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="taskTableBody">
+            {% if tasks %}
+              {% for task in tasks %}
+                <tr>
+                  <td class="task-id">{{ task.task_id }}</td>
+                  <td><strong>{{ task.task_name }}</strong></td>
+                  <td>
+                    <span class="badge priority-{{ task.priority|lower }}">
+                      {{ task.priority }}
+                    </span>
+                  </td>
+                  <td style="color: var(--text-muted); font-size: 13px;">{{ task.submitted_at }}</td>
+                  <td style="color: var(--text-muted); font-size: 13px;">{{ task.completed_at or '—' }}</td>
+                  <td style="font-size: 13px;">
+                    {% if task.duration_seconds %}
+                      {{ task.duration_seconds }}s
+                    {% else %}
+                      —
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge badge-{{ task.status|lower }}">
+                      {{ task.status }}
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr id="noTasksRow">
+                <td colspan="7" class="empty-state">
+                  No tasks queued yet. Submit a task above or trigger via REST API to see Kafka in action!
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Interactive JavaScript for Live Updates -->
+  <script>
+    const countdownEl = document.getElementById('countdown');
+    const tableBody = document.getElementById('taskTableBody');
+    const taskForm = document.getElementById('taskForm');
+    const alertBanner = document.getElementById('alertBanner');
+    const submitBtn = document.getElementById('submitBtn');
+
+    let secondsRemaining = 5;
+
+    // Helper: Fill form fields easily
+    function fillForm(name, priority) {
+      document.getElementById('taskName').value = name;
+      document.getElementById('priority').value = priority;
+    }
+
+    // Helper: Display notification banner
+    function showAlert(message, isSuccess = true) {
+      alertBanner.style.display = 'block';
+      alertBanner.style.background = isSuccess ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)';
+      alertBanner.style.border = isSuccess ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)';
+      alertBanner.style.color = isSuccess ? '#4ade80' : '#f87171';
+      alertBanner.innerHTML = `${isSuccess ? '✅' : '❌'} ${message}`;
+      setTimeout(() => { alertBanner.style.display = 'none'; }, 5000);
+    }
+
+    // Fetch live tasks from GET /tasks
+    async function refreshTasks() {
+      try {
+        const response = await fetch('/tasks');
+        if (!response.ok) throw new Error('Network error fetching tasks');
+        const data = await response.json();
+        const tasks = data.tasks || [];
+
+        renderTable(tasks);
+        updateStats(tasks);
+      } catch (err) {
+        console.warn('Auto-refresh failed:', err);
+      }
+    }
+
+    function updateStats(tasks) {
+      document.getElementById('statTotal').innerText = tasks.length;
+      document.getElementById('statQueued').innerText = tasks.filter(t => t.status === 'QUEUED').length;
+      document.getElementById('statProcessing').innerText = tasks.filter(t => t.status === 'PROCESSING').length;
+      document.getElementById('statCompleted').innerText = tasks.filter(t => t.status === 'COMPLETED').length;
+    }
+
+    function renderTable(tasks) {
+      if (tasks.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty-state">
+              No tasks queued yet. Submit a task above or trigger via REST API to see Kafka in action!
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tableBody.innerHTML = tasks.map(task => {
+        const statusClass = `badge-${(task.status || 'queued').toLowerCase()}`;
+        const priorityClass = `priority-${(task.priority || 'medium').toLowerCase()}`;
+        const durationText = task.duration_seconds ? `${task.duration_seconds}s` : '—';
+        const completedText = task.completed_at || '—';
+
+        return `
+          <tr>
+            <td class="task-id">${task.task_id}</td>
+            <td><strong>${escapeHtml(task.task_name)}</strong></td>
+            <td><span class="badge ${priorityClass}">${task.priority}</span></td>
+            <td style="color: var(--text-muted); font-size: 13px;">${task.submitted_at}</td>
+            <td style="color: var(--text-muted); font-size: 13px;">${completedText}</td>
+            <td style="font-size: 13px;">${durationText}</td>
+            <td><span class="badge ${statusClass}">${task.status}</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+      });
+    }
+
+    // Handle AJAX Form Submission
+    taskForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const taskName = document.getElementById('taskName').value.trim();
+      const priority = document.getElementById('priority').value;
+
+      if (!taskName) return;
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>⏳</span> Sending to Kafka...';
+
+      try {
+        const response = await fetch('/submit-task', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({ task_name: taskName, priority: priority })
+        });
+
+        const resData = await response.json();
+        if (response.ok && resData.status === 'success') {
+          showAlert(`Task <strong>${resData.task.task_id}</strong> published to Kafka broker successfully!`);
+          document.getElementById('taskName').value = '';
+          refreshTasks();
+        } else {
+          showAlert(resData.message || 'Failed to submit task.', false);
+        }
+      } catch (err) {
+        showAlert('Could not reach Flask server. Check if producer.py is running.', false);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>🚀</span> Enqueue Task';
+      }
+    });
+
+    // 5-second interval timer
+    setInterval(() => {
+      secondsRemaining -= 1;
+      if (secondsRemaining <= 0) {
+        refreshTasks();
+        secondsRemaining = 5;
+      }
+      countdownEl.innerText = secondsRemaining;
+    }, 1000);
+
+    document.getElementById('manualRefreshBtn').addEventListener('click', () => {
+      refreshTasks();
+      secondsRemaining = 5;
+      countdownEl.innerText = secondsRemaining;
+    });
+  </script>
+</body>
+</html>

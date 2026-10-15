@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  multi-agent-system:
+    build: .
+    container_name: multi_agent_task_system
+    ports:
+      - "5007:5007"
+    volumes:
+      - ./workspace:/app/workspace
+    environment:
+      - PORT=5007
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

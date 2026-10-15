@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Q&A System — Local RAG Pipeline</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-card-hover: #273549;
+            --border-color: #334155;
+            --border-highlight: #6366f1;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-primary: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --citation-bg: #0b1329;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-mono: "Fira Code", Menlo, Monaco, Consolas, "Courier New", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1380px;
+            margin: 0 auto;
+        }
+
+        /* Top Navbar */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .status-badges {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .badge-live {
+            border-color: rgba(16, 185, 129, 0.4);
+            color: var(--accent-success);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-success);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--accent-success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* Layout Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title span.count-badge {
+            font-size: 0.75rem;
+            background-color: var(--border-color);
+            color: var(--text-primary);
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        /* File Upload Area */
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--border-highlight);
+            background-color: rgba(99, 102, 241, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .drop-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+            color: var(--accent-primary);
+        }
+
+        .drop-zone p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .drop-zone small {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-primary);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 0.78rem;
+        }
+
+        .btn-danger {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background-color: rgba(239, 68, 68, 0.3);
+            color: #ffffff;
+        }
+
+        /* Upload Progress Bar */
+        .progress-container {
+            display: none;
+            margin-top: 14px;
+        }
+
+        .progress-bar-bg {
+            background-color: var(--bg-primary);
+            border-radius: 9999px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            transition: width 0.3s;
+            animation: progress-indeterminate 1.5s infinite linear;
+        }
+
+        @keyframes progress-indeterminate {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+
+        .progress-text {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            text-align: center;
+        }
+
+        /* Document List */
+        .document-list {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .document-item {
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: border-color 0.2s;
+        }
+
+        .document-item:hover {
+            border-color: #475569;
+        }
+
+        .doc-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .file-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .badge-pdf { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .badge-txt { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-md  { background-color: rgba(99, 102, 241, 0.2); color: #818cf8; }
+
+        .doc-meta h4 {
+            font-size: 0.88rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .doc-meta p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .doc-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 28px 12px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Q&A Section */
+        .qa-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .question-input {
+            width: 100%;
+            background-color: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            resize: vertical;
+            min-height: 84px;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .question-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+
+        .form-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .controls-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .select-filter {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            outline: none;
+        }
+
+        /* Sample Questions Bar */
+        .sample-queries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .query-chip {
+            background-color: rgba(30, 41, 59, 0.7);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 9999px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .query-chip:hover {
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            background-color: rgba(99, 102, 241, 0.15);
+            transform: translateY(-1px);
+        }
+
+        /* Answer Display Box */
+        .answer-box {
+            display: none;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-highlight);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .answer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        .answer-header h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #c7d2fe;
+        }
+
+        .answer-text {
+            font-size: 0.98rem;
+            line-height: 1.7;
+            color: #f1f5f9;
+            white-space: pre-line;
+            margin-bottom: 20px;
+        }
+
+        /* Citations Section */
+        .citations-section {
+            margin-top: 20px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 18px;
+        }
+
+        .citations-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .citations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .citation-card {
+            background-color: var(--citation-bg);
+            border: 1px solid #2e3a59;
+            border-left: 4px solid var(--accent-primary);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            transition: all 0.2s;
+        }
+
+        .citation-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .citation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .citation-source {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #a5b4fc;
+        }
+
+        .citation-score {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .citation-excerpt {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            font-style: italic;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Educational Architecture Overview Card */
+        .architecture-banner {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin-top: 32px;
+        }
+
+        .architecture-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #c7d2fe;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pipeline-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .step-item {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+        }
+
+        .step-num {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background-color: var(--accent-primary);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+
+        .step-item h5 {
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .step-item p {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Flash Notifications */
+        .alert-box {
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .alert-success {
+            background-color: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+
+        .alert-error {
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-area">
+                <div class="logo-icon">🧠</div>
+                <div class="logo-text">
+                    <h1>Document Q&A System</h1>
+                    <p>Retrieval-Augmented Generation (RAG) with Local Embeddings & Vector DB</p>
+                </div>
+            </div>
+            <div class="status-badges">
+                <div class="badge badge-live">
+                    <span class="pulse-dot"></span>
+                    <span>System Active :5006</span>
+                </div>
+                <div class="badge">
+                    <span>DB: <strong>{{ stats.vector_backend }}</strong></span>
+                </div>
+                <div class="badge">
+                    <span>Chunks: <strong id="totalChunksBadge">{{ stats.chunk_count }}</strong></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Alert Box -->
+        <div id="alertBox" class="alert-box"></div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Column: Upload & Document Management -->
+            <div class="sidebar">
+                <!-- Upload Card -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>Upload Documents</span>
+                        <span class="count-badge">PDF / TXT / MD</span>
+                    </div>
+
+                    <div class="drop-zone" id="dropZone">
+                        <div class="drop-icon">📁</div>
+                        <p><strong>Drag and drop documents here</strong></p>
+                        <p>or click to browse from your computer</p>
+                        <small>Max file size: 32MB • Text will be chunked & embedded</small>
+                        <input type="file" id="fileInput" class="file-input" accept=".txt,.pdf,.md">
+                    </div>
+
+                    <div class="progress-container" id="uploadProgress">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                        <div class="progress-text" id="uploadStatusText">Embedding document into vector database...</div>
+                    </div>
+                </div>
+
+                <!-- Documents List Card -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>Indexed Documents</span>
+                        <button class="btn btn-secondary btn-sm" id="btnReloadSamples" title="Index sample articles">
+                            ⚡ Sample Docs
+                        </button>
+                    </div>
+
+                    <div class="document-list" id="documentList">
+                        {% if documents %}
+                            {% for doc in documents %}
+                                <div class="document-item" id="doc-{{ doc.id }}">
+                                    <div class="doc-info">
+                                        <div class="file-badge badge-{{ doc.file_type }}">{{ doc.file_type }}</div>
+                                        <div class="doc-meta">
+                                            <h4 title="{{ doc.original_name }}">{{ doc.original_name }}</h4>
+                                            <p>{{ doc.chunk_count }} chunks • {{ doc.word_count }} words</p>
+                                        </div>
+                                    </div>
+                                    <div class="doc-actions">
+                                        <button class="btn btn-danger btn-sm" onclick="deleteDocument('{{ doc.id }}', '{{ doc.original_name }}')">
+                                            ✕
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state" id="emptyStateMsg">
+                                No documents indexed yet.<br>Upload a file or click <strong>Sample Docs</strong> above.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Interactive Q&A Interface -->
+            <div class="main-content">
+                <!-- Q&A Card -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>Ask Your Documents</span>
+                        <span class="count-badge">Semantic Retrieval</span>
+                    </div>
+
+                    <!-- Quick Sample Questions -->
+                    <div class="sample-queries">
+                        <button class="query-chip" onclick="setQuery('What is the difference between Narrow AI and General AI?')">
+                            💡 Narrow vs General AI?
+                        </button>
+                        <button class="query-chip" onclick="setQuery('What are the fundamental built-in data structures in Python?')">
+                            💡 Python data structures?
+                        </button>
+                        <button class="query-chip" onclick="setQuery('What are the primary cloud service models (IaaS, PaaS, SaaS)?')">
+                            💡 Cloud service models?
+                        </button>
+                        <button class="query-chip" onclick="setQuery('Why do language models hallucinate and how does RAG solve it?')">
+                            💡 Why RAG solves hallucinations?
+                        </button>
+                    </div>
+
+                    <!-- Question Input Form -->
+                    <form class="qa-form" id="qaForm" onsubmit="handleAsk(event)">
+                        <div class="input-group">
+                            <textarea 
+                                id="questionInput" 
+                                class="question-input" 
+                                placeholder="Type any question about your uploaded documents (e.g., 'Explain the core service models of cloud computing')..."
+                                rows="3"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <div class="form-controls">
+                            <div class="controls-left">
+                                <label for="topKSelect" style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    Chunks (Top-K):
+                                </label>
+                                <select id="topKSelect" class="select-filter">
+                                    <option value="2">Top 2</option>
+                                    <option value="3" selected>Top 3 (Recommended)</option>
+                                    <option value="5">Top 5</option>
+                                </select>
+
+                                <label for="docFilterSelect" style="font-size: 0.8rem; color: var(--text-secondary);">
+                                    Filter:
+                                </label>
+                                <select id="docFilterSelect" class="select-filter">
+                                    <option value="">All Documents</option>
+                                    {% for doc in documents %}
+                                        <option value="{{ doc.id }}">{{ doc.original_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" id="btnAsk">
+                                <span id="askBtnText">Ask RAG</span>
+                                <span id="askSpinner" class="spinner" style="display: none;"></span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Answer & Citation Output Box -->
+                    <div class="answer-box" id="answerBox">
+                        <div class="answer-header">
+                            <h3><span>🤖 Grounded Answer</span></h3>
+                            <div style="display: flex; gap: 8px;">
+                                <span class="badge" id="modelBadge">Model: Local RAG</span>
+                                <span class="badge" id="latencyBadge">⚡ 0 ms</span>
+                            </div>
+                        </div>
+
+                        <div class="answer-text" id="answerText">
+                            <!-- Answer text inserted dynamically -->
+                        </div>
+
+                        <!-- Source Citations Grid -->
+                        <div class="citations-section" id="citationsSection">
+                            <div class="citations-title">
+                                <span>📚 Source Citations & Retrieved Context</span>
+                            </div>
+                            <div class="citations-grid" id="citationsGrid">
+                                <!-- Citation cards inserted dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Educational Architecture Banner -->
+                <div class="architecture-banner">
+                    <div class="architecture-title">
+                        <span>⚙️ How This RAG Pipeline Works Behind The Scenes</span>
+                    </div>
+                    <div class="pipeline-steps">
+                        <div class="step-item">
+                            <span class="step-num">STEP 1</span>
+                            <h5>Document Chunking</h5>
+                            <p>Files are split into 500-character overlapping chunks to preserve local sentence context.</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-num">STEP 2</span>
+                            <h5>Vector Embedding</h5>
+                            <p>Each chunk is transformed into a 384-dimensional dense vector representing semantic meaning.</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-num">STEP 3</span>
+                            <h5>ChromaDB Indexing</h5>
+                            <p>Vectors are stored in ChromaDB, enabling fast cosine distance similarity queries.</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-num">STEP 4</span>
+                            <h5>Retrieval & Synthesis</h5>
+                            <p>The query is embedded, top matching passages are retrieved, and an answer is formulated with citations.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Client JavaScript -->
+    <script>
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const uploadStatusText = document.getElementById('uploadStatusText');
+        const alertBox = document.getElementById('alertBox');
+        const questionInput = document.getElementById('questionInput');
+        const btnAsk = document.getElementById('btnAsk');
+        const askBtnText = document.getElementById('askBtnText');
+        const askSpinner = document.getElementById('askSpinner');
+        const answerBox = document.getElementById('answerBox');
+        const answerText = document.getElementById('answerText');
+        const citationsGrid = document.getElementById('citationsGrid');
+        const modelBadge = document.getElementById('modelBadge');
+        const latencyBadge = document.getElementById('latencyBadge');
+        const totalChunksBadge = document.getElementById('totalChunksBadge');
+        const btnReloadSamples = document.getElementById('btnReloadSamples');
+        const documentList = document.getElementById('documentList');
+        const docFilterSelect = document.getElementById('docFilterSelect');
+
+        // Alert Helper
+        function showAlert(message, isError = false) {
+            alertBox.textContent = message;
+            alertBox.className = 'alert-box ' + (isError ? 'alert-error' : 'alert-success');
+            alertBox.style.display = 'block';
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+
+        // Quick Query Setter
+        function setQuery(text) {
+            questionInput.value = text;
+            questionInput.focus();
+        }
+
+        // File Drag & Drop Handlers
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        // Upload Process
+        async function handleFileUpload(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            uploadProgress.style.display = 'block';
+            uploadStatusText.textContent = `Processing and embedding "${file.name}"...`;
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert(`Uploaded "${file.name}" (${data.document.chunks} chunks indexed!)`);
+                    setTimeout(() => window.location.reload(), 1200);
+                } else {
+                    showAlert(data.error || 'Upload failed', true);
+                }
+            } catch (err) {
+                showAlert('Upload network error: ' + err.message, true);
+            } finally {
+                uploadProgress.style.display = 'none';
+                fileInput.value = '';
+            }
+        }
+
+        // Preload Sample Documents
+        btnReloadSamples.addEventListener('click', async () => {
+            btnReloadSamples.disabled = true;
+            btnReloadSamples.textContent = 'Loading...';
+            try {
+                const res = await fetch('/preload-samples', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showAlert(data.message);
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showAlert(data.error || 'Failed to preload sample docs', true);
+                }
+            } catch (err) {
+                showAlert('Error: ' + err.message, true);
+            } finally {
+                btnReloadSamples.disabled = false;
+                btnReloadSamples.textContent = '⚡ Sample Docs';
+            }
+        });
+
+        // Delete Document
+        async function deleteDocument(docId, docName) {
+            if (!confirm(`Are you sure you want to delete "${docName}" from vector store?`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`/documents/${docId}`, {
+                    method: 'DELETE',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showAlert(data.message);
+                    const el = document.getElementById(`doc-${docId}`);
+                    if (el) el.remove();
+                    // Update dropdown
+                    const opt = docFilterSelect.querySelector(`option[value="${docId}"]`);
+                    if (opt) opt.remove();
+                } else {
+                    showAlert(data.error || 'Failed to delete', true);
+                }
+            } catch (err) {
+                showAlert('Delete failed: ' + err.message, true);
+            }
+        }
+
+        // Q&A Query Submission
+        async function handleAsk(e) {
+            e.preventDefault();
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            const topK = document.getElementById('topKSelect').value;
+            const docFilter = docFilterSelect.value;
+
+            // UI Loading state
+            btnAsk.disabled = true;
+            askBtnText.textContent = 'Retrieving...';
+            askSpinner.style.display = 'inline-block';
+            answerBox.style.display = 'none';
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: question,
+                        top_k: parseInt(topK),
+                        document_id: docFilter || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Render Answer
+                    answerText.innerHTML = formatMarkdown(data.answer);
+                    modelBadge.textContent = 'Model: ' + (data.model_used || 'Local RAG');
+                    latencyBadge.textContent = `⚡ ${data.latency_ms} ms`;
+
+                    // Render Citations
+                    citationsGrid.innerHTML = '';
+                    if (data.citations && data.citations.length > 0) {
+                        data.citations.forEach((cit, idx) => {
+                            const card = document.createElement('div');
+                            card.className = 'citation-card';
+                            card.innerHTML = `
+                                <div class="citation-header">
+                                    <span class="citation-source">📄 ${escapeHtml(cit.source)} (Page ${cit.page})</span>
+                                    <span class="citation-score">${cit.score_pct} Match</span>
+                                </div>
+                                <div class="citation-excerpt">"${escapeHtml(cit.excerpt)}"</div>
+                            `;
+                            citationsGrid.appendChild(card);
+                        });
+                        document.getElementById('citationsSection').style.display = 'block';
+                    } else {
+                        document.getElementById('citationsSection').style.display = 'none';
+                    }
+
+                    answerBox.style.display = 'block';
+                    answerBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    showAlert(data.error || 'Query failed', true);
+                }
+            } catch (err) {
+                showAlert('Query error: ' + err.message, true);
+            } finally {
+                btnAsk.disabled = false;
+                askBtnText.textContent = 'Ask RAG';
+                askSpinner.style.display = 'none';
+            }
+        }
+
+        // Simple Markdown / Bold / Quote formatter for answers
+        function formatMarkdown(text) {
+            if (!text) return '';
+            let formatted = escapeHtml(text);
+            // Bold **text**
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Bullet points
+            formatted = formatted.replace(/^\s*-\s+(.*)$/gm, '• $1');
+            return formatted;
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>

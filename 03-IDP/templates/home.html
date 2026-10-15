@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Client App - OAuth 2.0 & OIDC</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --accent: #8b5cf6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.2);
+            color: #c7d2fe;
+            border: 1px solid #6366f1;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .auth-status-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #e2e8f0;
+            border: 1px solid var(--card-border);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #64748b;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .server-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .server-port {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .port-5003 { background: #312e81; color: #a5b4fc; }
+        .port-5004 { background: #064e3b; color: #6ee7b7; }
+        .port-5005 { background: #4c1d95; color: #d8b4fe; }
+
+        .server-box h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+        }
+
+        .server-box p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .actions-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .alert-flash {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success);
+            color: #6ee7b7;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="badge">Client Web Application • Port 5005</span>
+            <h1>Identity Federation Demo</h1>
+            <p class="subtitle">Experience modern OAuth 2.0 Authorization Code flow and OpenID Connect with a local Identity Provider and protected Resource Server.</p>
+        </div>
+
+        {% if message %}
+        <div class="alert-flash">{{ message }}</div>
+        {% endif %}
+
+        <div class="card">
+            {% if session.get('user') %}
+            <div class="auth-status-card">
+                <div class="user-info">
+                    <div class="avatar">{{ session['user'].get('name', 'U')[0].upper() }}</div>
+                    <div>
+                        <div style="font-size: 12px; color: #10b981; font-weight: 600; text-transform: uppercase;">Authenticated via IDP</div>
+                        <h2 style="font-size: 20px; font-weight: 700;">{{ session['user'].get('name') }} (@{{ session['user'].get('username') }})</h2>
+                        <p style="font-size: 13px; color: var(--text-muted);">{{ session['user'].get('email') }}</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="/profile" class="btn btn-primary">Profile & JWT Inspector</a>
+                    <a href="/data" class="btn btn-outline">Protected Data</a>
+                    <a href="/logout" class="btn btn-danger">Log Out</a>
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 20px 0;">
+                <h2 style="font-size: 22px; margin-bottom: 12px;">You are currently not logged in</h2>
+                <p style="color: var(--text-muted); font-size: 14px; max-width: 520px; margin: 0 auto 24px; line-height: 1.6;">
+                    To view protected resources, you must authenticate through the centralized Identity Provider using the OAuth 2.0 Authorization Code flow.
+                </p>
+                <a href="/login" class="btn btn-primary" style="font-size: 15px; padding: 14px 28px;">
+                    <svg style="width: 18px; height: 18px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                    Sign In with Custom IDP (Port 5003)
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2 style="font-size: 18px; margin-bottom: 12px;">Architecture Overview</h2>
+            <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6;">
+                This project demonstrates how decentralized authorization functions across three independent servers:
+            </p>
+
+            <div class="grid-3">
+                <div class="server-box">
+                    <span class="server-port port-5003">PORT 5003</span>
+                    <h3>Identity Provider (IDP)</h3>
+                    <p>Authenticates users, holds passwords and RSA private key, generates authorization codes, and issues signed RS256 JWT tokens.</p>
+                </div>
+
+                <div class="server-box">
+                    <span class="server-port port-5004">PORT 5004</span>
+                    <h3>Resource Server (API)</h3>
+                    <p>Holds sensitive data. Independently validates incoming Bearer JWTs by downloading public keys from IDP's JWKS endpoint.</p>
+                </div>
+
+                <div class="server-box">
+                    <span class="server-port port-5005">PORT 5005</span>
+                    <h3>Client App (This App)</h3>
+                    <p>The consumer application. Redirects user to IDP for login, exchanges auth code for tokens, and uses access tokens to query API.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

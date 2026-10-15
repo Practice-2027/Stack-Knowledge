@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Home — Secure Notes with Keycloak{% endblock %}
+
+{% block content %}
+<style>
+    .hero {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: var(--shadow-lg);
+    }
+    .hero h1 {
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.03em;
+    }
+    .hero p {
+        font-size: 1.1rem;
+        color: #94a3b8;
+        max-width: 650px;
+        margin: 0 auto 1.75rem auto;
+    }
+    .hero-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+    .feature-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+    }
+    .feature-card h3 {
+        font-size: 1.15rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--dark);
+    }
+    .feature-card p {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+    }
+    .creds-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        margin-top: 0.75rem;
+    }
+    .creds-table th, .creds-table td {
+        padding: 0.6rem 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+    }
+    .creds-table th {
+        background: #f1f5f9;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+    .code-box {
+        background: #0f172a;
+        color: #38bdf8;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.85rem;
+    }
+    .user-welcome-card {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero">
+    <h1>Enterprise IAM with Keycloak & Flask</h1>
+    <p>
+        A complete OpenID Connect (OIDC) & OAuth2 reference application.
+        Learn user authentication, JWT role-based access control, and session security.
+    </p>
+
+    <div class="hero-actions">
+        {% if session.get('user') %}
+            <a href="{{ url_for('list_notes') }}" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
+                📝 View My Notes
+            </a>
+            {% if 'admin' in session.get('user', {}).get('roles', []) %}
+                <a href="{{ url_for('admin_notes') }}" class="btn btn-secondary" style="padding: 0.75rem 1.75rem; font-size: 1rem; border-color: white;">
+                    🛡️ Open Admin Portal
+                </a>
+            {% endif %}
+        {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary" style="padding: 0.75rem 1.75rem; font-size: 1rem;">
+                🚀 Login via Keycloak
+            </a>
+            <a href="http://localhost:8088/admin/" target="_blank" class="btn btn-secondary" style="padding: 0.75rem 1.75rem; font-size: 1rem; border-color: white;">
+                ⚙️ Keycloak Admin Console
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if session.get('user') %}
+<!-- Active Session Details -->
+<div class="user-welcome-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="font-size: 1.3rem; color: #1e3a8a; margin-bottom: 0.25rem;">
+                Welcome back, {{ session['user']['name'] or session['user']['username'] }}!
+            </h2>
+            <p style="color: #3b82f6; font-size: 0.92rem;">
+                You are currently authenticated via Keycloak Realm <strong>notes-app</strong>.
+            </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <a href="{{ url_for('list_notes') }}" class="btn btn-primary btn-sm">My Notes</a>
+            <a href="{{ url_for('create_note_route') }}" class="btn btn-secondary btn-sm">+ Create Note</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Sign Out</a>
+        </div>
+    </div>
+
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #bfdbfe; font-size: 0.88rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+        <div><strong>Keycloak User ID (sub):</strong> <br><span class="code-box">{{ session['user']['sub'] }}</span></div>
+        <div><strong>Username:</strong> <br><span class="code-box">{{ session['user']['username'] }}</span></div>
+        <div><strong>Email:</strong> <br>{{ session['user']['email'] or 'None' }}</div>
+        <div><strong>Roles in Token:</strong> <br>
+            {% for r in session['user']['roles'] %}
+                <span class="badge {% if r == 'admin' %}badge-admin{% else %}badge-user{% endif %}">{{ r }}</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Start Credentials -->
+<div class="grid-2">
+    <div class="feature-card">
+        <h3>🔑 Pre-Configured Test Accounts</h3>
+        <p>Use these credentials to test the application after running <code>setup_keycloak.py</code>:</p>
+        <table class="creds-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Assigned Roles</th>
+                    <th>Permissions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>testuser</strong></td>
+                    <td><code>password</code></td>
+                    <td><span class="badge badge-user">user</span></td>
+                    <td>Personal notes only</td>
+                </tr>
+                <tr>
+                    <td><strong>admin</strong></td>
+                    <td><code>password</code></td>
+                    <td><span class="badge badge-admin">admin</span> <span class="badge badge-user">user</span></td>
+                    <td>View all users' notes</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="feature-card">
+        <h3>🔄 How Authentication Works</h3>
+        <ol style="margin-left: 1.25rem; font-size: 0.92rem; color: var(--text-muted); line-height: 1.7;">
+            <li><strong>Login Request:</strong> Clicking "Sign In" redirects you to Keycloak server at <code>http://localhost:8088/realms/notes-app/protocol/openid-connect/auth</code>.</li>
+            <li><strong>Identity Check:</strong> Keycloak validates credentials or lets users self-register.</li>
+            <li><strong>Authorization Code:</strong> Keycloak redirects back to <code>/callback</code> with a temporary authorization code.</li>
+            <li><strong>Token Exchange:</strong> The Flask backend exchanges the code for JWT tokens (Access, ID, Refresh).</li>
+            <li><strong>Session & RBAC:</strong> The app decodes the token claims and restricts views by role.</li>
+        </ol>
+    </div>
+</div>
+
+<!-- Architecture & IAM Concepts -->
+<h2 style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--dark);">Core Keycloak Concepts</h2>
+<div class="grid-3">
+    <div class="feature-card">
+        <h3>🏰 Realms</h3>
+        <p>
+            A realm manages a set of users, credentials, roles, and groups.
+            Our realm is <strong>notes-app</strong>, completely isolated from Keycloak's default <strong>master</strong> administration realm.
+        </p>
+    </div>
+
+    <div class="feature-card">
+        <h3>📱 Clients</h3>
+        <p>
+            Clients are applications and services that request authentication from Keycloak.
+            Our Flask app is registered as confidential client <strong>notes-client</strong> with an authenticating secret.
+        </p>
+    </div>
+
+    <div class="feature-card">
+        <h3>🛡️ Role-Based Access (RBAC)</h3>
+        <p>
+            Keycloak assigns roles like <strong>user</strong> and <strong>admin</strong> to accounts.
+            These roles are digitally embedded inside the signed JWT token claims evaluated by Flask.
+        </p>
+    </div>
+</div>
+{% endblock %}

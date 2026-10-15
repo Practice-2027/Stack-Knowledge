@@ -1,0 +1,17 @@
+# 20. Message Delivery
+
+Actual project: Python Flask producer in producer.py; kafka-python KafkaProducer; consumer worker in consumer.py; topic task-queue; broker localhost:9092 by default; consumer group task-processor-group; Docker Compose runs one Confluent Platform 7.5.0 broker plus ZooKeeper on 2181; JSON values; task status files are submitted_tasks.json and task_results.json.
+
+## Beginner meaning
+
+The intended normal path is at-least-once-like: a record can be processed and then seen again if the process fails before its automatic offset commit. Exactly-once is not implemented. At-most-once is not intentionally configured either.
+
+## Workflow
+
+```text
+Delivery guarantee depends on commit timing and worker failure.
+```
+
+## What is implemented
+
+The statements above describe the current repository. Features labelled as recommendations are not currently implemented. Check the source files before changing behavior.

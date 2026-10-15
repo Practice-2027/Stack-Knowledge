@@ -1,0 +1,21 @@
+Date,Region,Product,Category,Units,UnitPrice,Revenue,Salesperson
+2026-01-05,North,Solar Panel 400W,Clean Energy,25,280,7000,Alice Walker
+2026-01-07,South,Lithium Battery 5kWh,Energy Storage,12,1850,22200,Bob Martinez
+2026-01-10,East,Solar Inverter 5kVA,Power Electronics,18,920,16560,Charlie Chen
+2026-01-12,West,Wind Turbine 1kW,Clean Energy,8,1450,11600,Diana Prince
+2026-01-15,North,Charge Controller 60A,Power Electronics,40,165,6600,Alice Walker
+2026-01-18,South,Solar Panel 400W,Clean Energy,30,280,8400,Bob Martinez
+2026-01-22,East,Lithium Battery 5kWh,Energy Storage,15,1850,27750,Charlie Chen
+2026-01-25,West,Solar Inverter 5kVA,Power Electronics,10,920,9200,Diana Prince
+2026-01-28,North,Lithium Battery 5kWh,Energy Storage,14,1850,25900,Alice Walker
+2026-02-02,South,Wind Turbine 1kW,Clean Energy,6,1450,8700,Bob Martinez
+2026-02-06,East,Solar Panel 400W,Clean Energy,35,280,9800,Charlie Chen
+2026-02-10,West,Charge Controller 60A,Power Electronics,50,165,8250,Diana Prince
+2026-02-14,North,Solar Inverter 5kVA,Power Electronics,22,920,20240,Alice Walker
+2026-02-18,South,Charge Controller 60A,Power Electronics,32,165,5280,Bob Martinez
+2026-02-22,East,Wind Turbine 1kW,Clean Energy,10,1450,14500,Charlie Chen
+2026-02-25,West,Lithium Battery 5kWh,Energy Storage,16,1850,29600,Diana Prince
+2026-03-01,North,Wind Turbine 1kW,Clean Energy,9,1450,13050,Alice Walker
+2026-03-05,South,Solar Inverter 5kVA,Power Electronics,14,920,12880,Bob Martinez
+2026-03-10,East,Charge Controller 60A,Power Electronics,45,165,7425,Charlie Chen
+2026-03-15,West,Solar Panel 400W,Clean Energy,40,280,11200,Diana Prince

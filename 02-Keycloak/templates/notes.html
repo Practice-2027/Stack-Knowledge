@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}My Notes — Secure Notes{% endblock %}
+
+{% block content %}
+<style>
+    .notes-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .notes-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+    .notes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.25rem;
+    }
+    .note-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .note-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+    .note-title {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+        word-break: break-word;
+    }
+    .note-body {
+        color: #334155;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        margin-bottom: 1rem;
+        word-break: break-word;
+        flex: 1;
+    }
+    .note-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 0.75rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border: 2px dashed var(--border);
+        border-radius: var(--radius);
+        margin-top: 1rem;
+    }
+    .empty-state h3 {
+        font-size: 1.3rem;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+    }
+    .empty-state p {
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+        max-width: 450px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .security-banner {
+        background-color: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: var(--radius);
+        padding: 0.75rem 1rem;
+        font-size: 0.88rem;
+        color: #166534;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+</style>
+
+<div class="security-banner">
+    <span>🔒</span>
+    <span><strong>Data Isolation:</strong> You are viewing only notes associated with your Keycloak User ID (<code>{{ session['user']['sub'][:18] }}...</code>). Other non-admin users cannot see this data.</span>
+</div>
+
+<div class="notes-header">
+    <div>
+        <h1 class="notes-title">My Personal Notes</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Welcome, <strong>{{ session['user']['username'] }}</strong>. You have <strong>{{ notes|length }}</strong> note{{ 's' if notes|length != 1 else '' }}.
+        </p>
+    </div>
+    <a href="{{ url_for('create_note_route') }}" class="btn btn-primary">
+        + Create New Note
+    </a>
+</div>
+
+{% if notes %}
+    <div class="notes-grid">
+        {% for note in notes %}
+            <div class="note-card">
+                <div>
+                    <h2 class="note-title">{{ note['title'] }}</h2>
+                    <div class="note-body">{{ note['content'] }}</div>
+                </div>
+                <div class="note-footer">
+                    <span>🕒 {{ note['created_at'] }}</span>
+                    <form action="{{ url_for('delete_note_route', note_id=note['id']) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this note?');" style="margin: 0;">
+                        <button type="submit" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <div style="font-size: 3rem; margin-bottom: 0.75rem;">📝</div>
+        <h3>No notes created yet!</h3>
+        <p>You haven't written any secure notes yet. Click the button below to add your first confidential note.</p>
+        <a href="{{ url_for('create_note_route') }}" class="btn btn-primary">
+            Create Your First Note
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

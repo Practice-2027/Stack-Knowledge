@@ -1,0 +1,17 @@
+# Core web framework
+flask>=3.0.0
+
+# Keycloak OpenID Connect and Admin API client
+python-keycloak>=3.9.0
+
+# HTTP requests library
+requests>=2.31.0
+
+# Server-side session management for Flask
+flask-session>=0.8.0
+
+# Environment variable management (.env file)
+python-dotenv>=1.0.0
+
+# Cryptography tools for JWT tokens and cryptographic keys
+cryptography>=41.0.0

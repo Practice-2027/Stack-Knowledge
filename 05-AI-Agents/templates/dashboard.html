@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Agent Task Automation System</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #8b5cf6;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #06b6d4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 50px;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--card-border);
+      padding: 20px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      font-size: 32px;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 8px 12px;
+      border-radius: 12px;
+    }
+
+    .brand-title h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    .brand-title p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #334155;
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .badge-live {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* CONTAINER */
+    .container {
+      max-width: 1400px;
+      margin: 24px auto;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* AGENT CARDS GRID */
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .agent-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .agent-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .agent-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .agent-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .agent-role {
+      font-size: 12px;
+      color: var(--accent);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-IDLE {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-BUSY {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      animation: pulse 1s infinite;
+    }
+
+    .status-ERROR {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .capabilities-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 12px;
+    }
+
+    .cap-tag {
+      font-size: 11px;
+      background: #0f172a;
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .agent-footer {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* MAIN WORKSPACE 2-COLUMN */
+    .workspace-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .workspace-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* TASK DISPATCHER FORM */
+    .example-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .btn-example {
+      background: #24324d;
+      color: #cbd5e1;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-example:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    textarea#taskInput {
+      width: 100%;
+      height: 95px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      color: #fff;
+      font-size: 14px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea#taskInput:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #334155;
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+      color: #fff;
+    }
+
+    /* EXECUTION PROGRESS / STEPS */
+    .execution-box {
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      background: #0f172a;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .exec-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 8px;
+    }
+
+    .trace-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .trace-item {
+      background: #1e293b;
+      border-left: 3px solid var(--primary);
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .trace-item.SUCCESS {
+      border-left-color: var(--success);
+    }
+
+    .trace-item.FAILED {
+      border-left-color: var(--danger);
+    }
+
+    .trace-agent {
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .trace-desc {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    /* RESULT PREVIEW CONTAINER */
+    .result-container {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* MESSAGE BUS FEED */
+    .bus-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .bus-filter {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      color: #cbd5e1;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .messages-scroll {
+      height: 600px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px;
+      background: #0f172a;
+    }
+
+    .msg-card {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      transition: border-color 0.15s;
+    }
+
+    .msg-card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .msg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .msg-routing {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    .msg-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .msg-badge-TASK {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+
+    .msg-badge-RESULT {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .msg-badge-ERROR {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .msg-badge-INFO {
+      background: rgba(139, 92, 246, 0.2);
+      color: #a78bfa;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+    }
+
+    .msg-body {
+      color: #f1f5f9;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1.5;
+      max-height: 140px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    /* HISTORY & FILES SECTION */
+    .tabs-nav {
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: #334155;
+      color: #fff;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    table.data-table th {
+      background: #0f172a;
+      color: var(--text-muted);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+      font-weight: 600;
+    }
+
+    table.data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+    }
+
+    table.data-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* MODAL */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-window {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 800px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🤖</div>
+      <div class="brand-title">
+        <h1>Multi-Agent Task Automation System</h1>
+        <p>Specialized Collaborative Agents &bull; Central Message Bus &bull; Port 5007</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div class="badge badge-live">
+        <span class="dot"></span> System Online
+      </div>
+      <div class="badge" id="agentCountBadge">5 Active Specialists</div>
+      <div class="badge" id="messageCountBadge">0 Messages Logged</div>
+      <button class="btn-secondary" onclick="resetBus()">Reset System</button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <div class="container">
+
+    <!-- AGENT STATUS CARDS -->
+    <section>
+      <div class="agents-grid" id="agentsGrid">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- 2-COLUMN MAIN WORKSPACE -->
+    <div class="workspace-layout">
+
+      <!-- LEFT COLUMN: TASK DISPATCHER & RESULTS -->
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+
+        <!-- TASK INPUT PANEL -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">⚡ Task Dispatcher</span>
+            <span style="font-size: 12px; color: var(--text-muted);">Delegates to Orchestrator</span>
+          </div>
+          <div class="panel-body">
+            <div>
+              <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                Pre-built Example Scenarios:
+              </label>
+              <div class="example-buttons">
+                <button class="btn-example" onclick="setExample(0)">🌱 Renewable Energy Report</button>
+                <button class="btn-example" onclick="setExample(1)">💰 Compound Interest ($10k @ 5% 10y)</button>
+                <button class="btn-example" onclick="setExample(2)">📊 Sales CSV Summary Report</button>
+                <button class="btn-example" onclick="setExample(3)">🐍 Python Beginner Guide</button>
+              </div>
+            </div>
+
+            <textarea id="taskInput" placeholder="Enter instructions for the agent swarm (e.g., 'Research and write a report about renewable energy' or 'Calculate compound interest for $10000 at 5% for 10 years')"></textarea>
+
+            <button class="btn-submit" id="submitBtn" onclick="submitTask()">
+              <span id="btnIcon">🚀</span> <span id="btnText">Execute Multi-Agent Task</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- EXECUTION OUTPUT PANEL -->
+        <div class="panel" id="resultPanel">
+          <div class="panel-header">
+            <span class="panel-title">📋 Execution Plan & Final Deliverable</span>
+            <span id="execStatsBadge" style="font-size: 12px; color: var(--accent);">Ready</span>
+          </div>
+          <div class="panel-body">
+            <!-- Pipeline steps trace -->
+            <div class="execution-box" id="execTraceBox" style="display: none;">
+              <div class="exec-header">
+                <span>Multi-Agent Execution Pipeline</span>
+                <span id="pipelineCategory"></span>
+              </div>
+              <div class="trace-list" id="traceList"></div>
+            </div>
+
+            <!-- Deliverable Preview -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 13px; font-weight: 600; color: #fff;" id="deliverableTitle">Artifact Preview</span>
+                <span style="font-size: 11px; color: var(--text-muted);" id="deliverableMeta"></span>
+              </div>
+              <div class="result-container" id="deliverableContent">
+Submit a task above or pick one of the 4 pre-built examples to watch the Orchestrator, Researcher, Calculator, Writer, and FileAgent collaborate through the central message bus!
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: LIVE MESSAGE BUS STREAM -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">📡 Live Message Bus Stream</span>
+          <div class="bus-controls">
+            <select class="bus-filter" id="msgTypeFilter" onchange="renderMessages()">
+              <option value="ALL">All Types</option>
+              <option value="TASK">TASK</option>
+              <option value="RESULT">RESULT</option>
+              <option value="INFO">INFO</option>
+              <option value="ERROR">ERROR</option>
+            </select>
+            <select class="bus-filter" id="agentFilter" onchange="renderMessages()">
+              <option value="ALL">All Agents</option>
+              <option value="Orchestrator">Orchestrator</option>
+              <option value="Researcher">Researcher</option>
+              <option value="Calculator">Calculator</option>
+              <option value="Writer">Writer</option>
+              <option value="FileAgent">FileAgent</option>
+            </select>
+          </div>
+        </div>
+        <div class="messages-scroll" id="messagesList">
+          <!-- Messages rendered via JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TABS: TASK HISTORY & WORKSPACE EXPLORER -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="tabs-nav">
+          <button class="tab-btn active" onclick="switchTab('historyTab', this)">📜 Task Execution History</button>
+          <button class="tab-btn" onclick="switchTab('workspaceTab', this)">📁 Workspace Files Explorer</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        
+        <!-- HISTORY PANE -->
+        <div class="tab-pane active" id="historyTab">
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Task Objective</th>
+                  <th>Category</th>
+                  <th>Steps</th>
+                  <th>Duration</th>
+                  <th>Deliverable</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No tasks executed yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- WORKSPACE FILES PANE -->
+        <div class="tab-pane" id="workspaceTab">
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Size</th>
+                  <th>Type</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="filesTableBody">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FILE VIEWER MODAL -->
+  <div class="modal-backdrop" id="fileModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 id="modalFileName" style="font-size: 15px; color: #fff;">File Content</h3>
+        <button class="btn-secondary" onclick="closeModal()">Close</button>
+      </div>
+      <div class="modal-body" id="modalFileBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const EXAMPLES = [
+      "Research and write a report about renewable energy",
+      "Calculate compound interest for $10000 at 5% for 10 years",
+      "Read data from workspace/sales.csv and create a summary report",
+      "Research Python programming and create a beginner guide"
+    ];
+
+    let cachedMessages = [];
+
+    function setExample(idx) {
+      document.getElementById('taskInput').value = EXAMPLES[idx];
+    }
+
+    // Switch tabs
+    function switchTab(paneId, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(paneId).classList.add('active');
+      if (paneId === 'workspaceTab') loadFiles();
+    }
+
+    // Modal controls
+    function closeModal() {
+      document.getElementById('fileModal').style.display = 'none';
+    }
+
+    async function viewFile(fname) {
+      try {
+        const res = await fetch(`/file/${fname}`);
+        const data = await res.json();
+        document.getElementById('modalFileName').textContent = `workspace/${fname}`;
+        document.getElementById('modalFileBody').textContent = data.content || data.error;
+        document.getElementById('fileModal').style.display = 'flex';
+      } catch (err) {
+        alert("Failed to read file: " + err);
+      }
+    }
+
+    // Reset System
+    async function resetBus() {
+      if (confirm("Reset message bus log and clear task history?")) {
+        await fetch('/reset', { method: 'POST' });
+        loadAgents();
+        loadMessages();
+        loadHistory();
+      }
+    }
+
+    // Fetch and render Agents
+    async function loadAgents() {
+      try {
+        const res = await fetch('/agents');
+        const agents = await res.json();
+        const grid = document.getElementById('agentsGrid');
+        grid.innerHTML = '';
+        
+        agents.forEach(agent => {
+          const card = document.createElement('div');
+          card.className = 'agent-card';
+          
+          const capsHtml = agent.capabilities.map(c => `<span class="cap-tag">${c}</span>`).join('');
+          
+          card.innerHTML = `
+            <div class="agent-card-header">
+              <div>
+                <div class="agent-name">${agent.name}</div>
+                <div class="agent-role">${agent.role}</div>
+              </div>
+              <span class="status-pill status-${agent.status}">${agent.status}</span>
+            </div>
+            <div class="capabilities-list">
+              ${capsHtml}
+            </div>
+            <div class="agent-footer">
+              <span>Tools: ${agent.tools.length}</span>
+              <span>Inbox: ${agent.inbox_count} msgs</span>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+        document.getElementById('agentCountBadge').textContent = `${agents.length} Active Specialists`;
+      } catch (e) {
+        console.error("Agents fetch error:", e);
+      }
+    }
+
+    // Fetch and render Messages
+    async function loadMessages() {
+      try {
+        const res = await fetch('/messages');
+        cachedMessages = await res.json();
+        document.getElementById('messageCountBadge').textContent = `${cachedMessages.length} Messages Logged`;
+        renderMessages();
+      } catch (e) {
+        console.error("Messages fetch error:", e);
+      }
+    }
+
+    function renderMessages() {
+      const typeFilter = document.getElementById('msgTypeFilter').value;
+      const agentFilter = document.getElementById('agentFilter').value;
+      const list = document.getElementById('messagesList');
+      
+      const filtered = cachedMessages.filter(m => {
+        if (typeFilter !== 'ALL' && m.message_type !== typeFilter) return false;
+        if (agentFilter !== 'ALL' && (m.sender !== agentFilter && m.receiver !== agentFilter)) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">No messages match filter.</div>`;
+        return;
+      }
+
+      list.innerHTML = '';
+      filtered.slice().reverse().forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'msg-card';
+        
+        let contentStr = '';
+        if (typeof m.content === 'object') {
+          contentStr = JSON.stringify(m.content, null, 2);
+        } else {
+          contentStr = String(m.content);
+        }
+
+        div.innerHTML = `
+          <div class="msg-header">
+            <div class="msg-routing">
+              <span class="msg-badge msg-badge-${m.message_type}">${m.message_type}</span>
+              <span>${m.sender} ➔ ${m.receiver}</span>
+            </div>
+            <span>${m.timestamp}</span>
+          </div>
+          <div class="msg-body">${escapeHtml(contentStr)}</div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+    }
+
+    // Submit Task
+    async function submitTask() {
+      const input = document.getElementById('taskInput');
+      const taskText = input.value.trim();
+      if (!taskText) {
+        alert("Please enter a task description!");
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      btn.disabled = true;
+      btnText.textContent = "Agent Swarm Collaborating...";
+      document.getElementById('execStatsBadge').textContent = "Executing...";
+
+      try {
+        const response = await fetch('/task', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task: taskText }),
+        });
+
+        const result = await response.json();
+
+        // Update deliverable preview
+        document.getElementById('deliverableTitle').textContent = result.key_deliverable || result.category || "Execution Complete";
+        document.getElementById('deliverableMeta').textContent = `Completed in ${result.duration_seconds}s (${result.execution_trace ? result.execution_trace.length : 0} steps)`;
+        document.getElementById('deliverableContent').textContent = result.final_document || JSON.stringify(result, null, 2);
+
+        // Update pipeline box
+        if (result.execution_trace) {
+          const traceBox = document.getElementById('execTraceBox');
+          traceBox.style.display = 'flex';
+          document.getElementById('pipelineCategory').textContent = result.category || "";
+          const traceList = document.getElementById('traceList');
+          traceList.innerHTML = '';
+          result.execution_trace.forEach(t => {
+            const item = document.createElement('div');
+            item.className = `trace-item ${t.status}`;
+            item.innerHTML = `
+              <div>
+                <span class="trace-agent">[Step ${t.step}] ${t.agent}</span>
+                <span class="trace-desc">${t.description}</span>
+              </div>
+              <span style="font-size: 11px; font-weight: 600; color: #10b981;">${t.duration_seconds || 0}s &bull; ${t.status}</span>
+            `;
+            traceList.appendChild(item);
+          });
+        }
+
+        document.getElementById('execStatsBadge').textContent = "Finished in " + result.duration_seconds + "s";
+
+        // Refresh views
+        loadAgents();
+        loadMessages();
+        loadHistory();
+        loadFiles();
+
+      } catch (err) {
+        alert("Task execution failed: " + err);
+        document.getElementById('execStatsBadge').textContent = "Execution Failed";
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = "Execute Multi-Agent Task";
+      }
+    }
+
+    // History Table
+    async function loadHistory() {
+      try {
+        const res = await fetch('/history');
+        const history = await res.json();
+        const tbody = document.getElementById('historyTableBody');
+        if (history.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No tasks executed yet.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = '';
+        history.slice().reverse().forEach(h => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${h.timestamp}</td>
+            <td style="font-weight: 600; color: #fff;">${escapeHtml(h.task)}</td>
+            <td><span class="cap-tag">${h.category}</span></td>
+            <td>${h.execution_trace ? h.execution_trace.length : 0} steps</td>
+            <td>${h.duration_seconds}s</td>
+            <td>${escapeHtml(h.key_deliverable || "Done")}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error("History fetch error:", e);
+      }
+    }
+
+    // Workspace Files Table
+    async function loadFiles() {
+      try {
+        const res = await fetch('/files');
+        const data = await res.json();
+        const tbody = document.getElementById('filesTableBody');
+        if (!data.files || data.files.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">No files found in workspace.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = '';
+        data.files.forEach(f => {
+          const tr = document.createElement('tr');
+          const sizeKb = (f.size_bytes / 1024).toFixed(1) + " KB";
+          tr.innerHTML = `
+            <td style="font-weight: 600; color: #fff;">${f.name}</td>
+            <td>${sizeKb}</td>
+            <td><span class="cap-tag">${f.extension || 'file'}</span></td>
+            <td>
+              <button class="btn-secondary" onclick="viewFile('${f.name}')">View Content</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error("Files fetch error:", e);
+      }
+    }
+
+    // Auto-polling for live dashboard feel
+    setInterval(() => {
+      loadMessages();
+      loadAgents();
+    }, 2000);
+
+    // Initial load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAgents();
+      loadMessages();
+      loadHistory();
+      loadFiles();
+    });
+  </script>
+</body>
+</html>

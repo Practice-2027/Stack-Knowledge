@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard — All Notes Audit{% endblock %}
+
+{% block content %}
+<style>
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .admin-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .admin-banner {
+        background-color: #faf5ff;
+        border: 1px solid #e9d5ff;
+        border-radius: var(--radius);
+        padding: 0.85rem 1.15rem;
+        font-size: 0.9rem;
+        color: #6b21a8;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+    .stat-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        box-shadow: var(--shadow);
+    }
+    .stat-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 0.35rem;
+        font-weight: 600;
+    }
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+    .admin-table {
+        width: 100%;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        border-collapse: collapse;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        font-size: 0.92rem;
+    }
+    .admin-table th, .admin-table td {
+        padding: 0.85rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+    }
+    .admin-table th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+    .admin-table tr:hover td {
+        background: #f8fafc;
+    }
+    .user-pill {
+        display: inline-block;
+        background: #f1f5f9;
+        color: #334155;
+        font-family: monospace;
+        font-size: 0.82rem;
+        padding: 0.15rem 0.45rem;
+        border-radius: 4px;
+        margin-top: 0.25rem;
+    }
+</style>
+
+<div class="admin-banner">
+    <span style="font-size: 1.25rem;">🛡️</span>
+    <div>
+        <strong>Administrative Role-Based Access Granted:</strong> 
+        Because your Keycloak token contains the <code>admin</code> realm role, you can audit all notes across every user account.
+    </div>
+</div>
+
+<div class="admin-header">
+    <div>
+        <h1 class="admin-title">
+            <span>Admin Overview</span>
+            <span class="badge badge-admin">Administrator View</span>
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Central management of all secure notes stored in the database.
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+        <a href="{{ url_for('create_note_route') }}" class="btn btn-primary btn-sm">+ Create Note</a>
+        <a href="{{ url_for('list_notes') }}" class="btn btn-secondary btn-sm">My Own Notes</a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-label">Total Notes in System</div>
+        <div class="stat-value">{{ notes|length }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Unique Note Authors</div>
+        <div class="stat-value">{{ unique_authors_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Keycloak Realm</div>
+        <div class="stat-value" style="font-size: 1.25rem; color: #4338ca;">notes-app</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Security Protocol</div>
+        <div class="stat-value" style="font-size: 1.25rem; color: #0284c7;">OIDC / OAuth2</div>
+    </div>
+</div>
+
+<!-- Table of All Notes -->
+{% if notes %}
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">ID</th>
+                    <th style="width: 200px;">Author / User ID</th>
+                    <th style="width: 220px;">Title</th>
+                    <th>Content</th>
+                    <th style="width: 170px;">Created</th>
+                    <th style="width: 80px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for note in notes %}
+                    <tr>
+                        <td><strong>#{{ note['id'] }}</strong></td>
+                        <td>
+                            <strong>👤 {{ note['username'] }}</strong><br>
+                            <span class="user-pill" title="{{ note['user_id'] }}">{{ note['user_id'][:12] }}...</span>
+                        </td>
+                        <td><strong>{{ note['title'] }}</strong></td>
+                        <td style="white-space: pre-wrap; color: #334155;">{{ note['content'] }}</td>
+                        <td style="color: var(--text-muted); font-size: 0.85rem;">{{ note['created_at'] }}</td>
+                        <td>
+                            <form action="{{ url_for('delete_note_route', note_id=note['id']) }}" method="POST" onsubmit="return confirm('Admin: Delete note #{{ note['id'] }}?');">
+                                <button type="submit" class="btn btn-danger btn-sm" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="card" style="text-align: center; padding: 3rem;">
+        <p style="color: var(--text-muted);">No notes have been registered in the system yet.</p>
+    </div>
+{% endif %}
+{% endblock %}
