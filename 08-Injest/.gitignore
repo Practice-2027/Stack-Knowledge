@@ -1,0 +1,36 @@
+# =============================================================================
+# 08-Injest .gitignore
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# SQLite Database
+ingest_store.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Python Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Temporary / Uploaded artifacts
+uploads/
+*.tmp
+
+# Logs
+*.log
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp

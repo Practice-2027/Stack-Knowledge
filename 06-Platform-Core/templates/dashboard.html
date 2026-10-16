@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>06-Platform-Core Hub</title>
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-card: #131b2e;
+            --border: #23314e;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --badge-bg: #1e293b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg-base); color: var(--text-main); min-height: 100vh; padding: 24px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 18px; margin-bottom: 24px; }
+        .title-group { display: flex; align-items: center; gap: 12px; }
+        .badge-port { background: #1e3a8a; color: #93c5fd; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+        .stat-val { font-size: 28px; font-weight: 700; color: var(--text-main); margin-top: 6px; }
+        .stat-lbl { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+        .card-title { font-size: 18px; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { color: var(--text-muted); padding: 10px 14px; border-bottom: 1px solid var(--border); font-weight: 600; }
+        td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+        .status-online { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-offline { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .status-unknown { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+        .btn { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.2s; }
+        .btn:hover { background: var(--primary-hover); }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .code-snippet { background: #0b1120; border: 1px solid #1e293b; padding: 6px 10px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #38bdf8; }
+        .audit-item { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+        .audit-action { font-weight: 600; color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title-group">
+                <h1>🏛️ Platform-Core Hub</h1>
+                <span class="badge-port">Port 5008</span>
+            </div>
+            <div>
+                <button class="btn" onclick="probeServices()">🔄 Probe Service Health</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-lbl">Registered Services</div>
+                <div class="stat-val" id="stat-services">{{ services|length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-lbl">Active Feature Flags</div>
+                <div class="stat-val" id="stat-flags">{{ flags|length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-lbl">Registered Tenants</div>
+                <div class="stat-val">{{ tenants|length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-lbl">Audit Events</div>
+                <div class="stat-val">{{ audit_logs|length }}</div>
+            </div>
+        </div>
+
+        <!-- Service Registry Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📡 Service Registry & Live Catalog</div>
+                <span style="font-size: 12px; color: var(--text-muted);">Auto-refreshes on probe</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Host / Port</th>
+                        <th>Category</th>
+                        <th>Health Endpoint</th>
+                        <th>Live Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="services-tbody">
+                    {% for s in services %}
+                    <tr>
+                        <td><strong>{{ s.display_name }}</strong></td>
+                        <td><code>http://{{ s.host }}:{{ s.port }}</code></td>
+                        <td><span class="code-snippet">{{ s.category }}</span></td>
+                        <td><code>{{ s.health_path }}</code></td>
+                        <td>
+                            {% if s.status == 'ONLINE' %}
+                            <span class="status-pill status-online">● ONLINE</span>
+                            {% elif s.status == 'OFFLINE' %}
+                            <span class="status-pill status-offline">○ OFFLINE</span>
+                            {% else %}
+                            <span class="status-pill status-unknown">◌ UNKNOWN</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="http://{{ s.host }}:{{ s.port }}" target="_blank" style="color: #60a5fa; text-decoration: none; font-size: 13px;">Open ↗</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Feature Flags Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🚩 Dynamic Feature Flags & Platform Settings</div>
+                <span style="font-size: 12px; color: var(--text-muted);">Live toggling persists to database</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Flag Key</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Toggle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in flags %}
+                    <tr>
+                        <td><code>{{ f.flag_key }}</code></td>
+                        <td style="color: var(--text-muted);">{{ f.description }}</td>
+                        <td id="lbl-{{ f.flag_key }}">
+                            {% if f.enabled == 1 %}
+                            <strong style="color: #34d399;">ENABLED</strong>
+                            {% else %}
+                            <strong style="color: #94a3b8;">DISABLED</strong>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" {% if f.enabled == 1 %}checked{% endif %} onchange="toggleFlag('{{ f.flag_key }}', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tenants & Audit Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- Tenants Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🏢 Tenants & API Keys</div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tenant</th>
+                            <th>Tier</th>
+                            <th>API Key</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tenants %}
+                        <tr>
+                            <td>{{ t.name }}</td>
+                            <td><span class="code-snippet">{{ t.tier }}</span></td>
+                            <td><code>{{ t.api_key[:12] }}...</code></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Audit Logs Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📜 Unified Platform Audit Log</div>
+                </div>
+                <div id="audit-feed" style="max-height: 240px; overflow-y: auto;">
+                    {% for a in audit_logs %}
+                    <div class="audit-item">
+                        <div>
+                            <span class="audit-action">[{{ a.action }}]</span>
+                            <span style="color: var(--text-muted);">by {{ a.actor }} on {{ a.service }}</span>
+                            <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">{{ a.details }}</div>
+                        </div>
+                        <span style="font-size: 11px; color: var(--text-muted);">{{ a.created_at[11:19] }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function probeServices() {
+            try {
+                const res = await fetch('/api/registry/probe', { method: 'POST' });
+                if (res.ok) {
+                    location.reload();
+                }
+            } catch(e) {
+                alert('Probe failed: ' + e);
+            }
+        }
+
+        async function toggleFlag(key, enabled) {
+            try {
+                const res = await fetch('/api/flags/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ flag_key: key, enabled: enabled ? 1 : 0 })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const lbl = document.getElementById('lbl-' + key);
+                    if (lbl) {
+                        lbl.innerHTML = enabled ? '<strong style="color: #34d399;">ENABLED</strong>' : '<strong style="color: #94a3b8;">DISABLED</strong>';
+                    }
+                }
+            } catch(e) {
+                alert('Flag toggle failed: ' + e);
+            }
+        }
+    </script>
+</body>
+</html>

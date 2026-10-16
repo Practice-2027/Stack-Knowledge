@@ -1,0 +1,9 @@
+event_type,source,device_id,payload,timestamp
+user_login,auth_service,dev-web-01,"{""username"": ""alice"", ""ip"": ""192.168.1.10""}",2026-10-16 00:01:10
+temperature_reading,iot_sensor,sensor-temp-42,"{""value"": 23.4, ""unit"": ""celsius""}",2026-10-16 00:01:15
+payment_processed,billing_engine,pay-srv-09,"{""amount"": 149.99, ""currency"": ""USD""}",2026-10-16 00:01:20
+page_view,analytics_sdk,client-browser-12,"{""url"": ""/dashboard"", ""duration_ms"": 450}",2026-10-16 00:01:25
+cpu_spike,monitoring_agent,srv-prod-node-3,"{""usage_percent"": 94.2, ""threshold"": 85.0}",2026-10-16 00:01:30
+file_upload,storage_gateway,gw-s3-proxy,"{""filename"": ""report.pdf"", ""size_bytes"": 1048576}",2026-10-16 00:01:35
+user_logout,auth_service,dev-web-01,"{""username"": ""alice""}",2026-10-16 00:01:40
+malformed_row,unknown,,,"not-a-timestamp"

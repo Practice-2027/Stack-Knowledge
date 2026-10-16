@@ -1,0 +1,23 @@
+[
+  {
+    "event_type": "api_request",
+    "source": "api_gateway",
+    "device_id": "gw-node-01",
+    "payload": {"endpoint": "/api/v1/users", "status": 200, "latency_ms": 42},
+    "timestamp": "2026-10-16T00:05:00Z"
+  },
+  {
+    "event_type": "sensor_telemetry",
+    "source": "factory_floor",
+    "device_id": "plc-motor-88",
+    "payload": {"rpm": 1750, "vibration_g": 0.45, "temperature_c": 54.2},
+    "timestamp": "2026-10-16T00:05:05Z"
+  },
+  {
+    "event_type": "security_alert",
+    "source": "waf_firewall",
+    "device_id": "edge-proxy-04",
+    "payload": {"rule_id": "SQLI_DETECTION", "client_ip": "10.0.0.99", "blocked": true},
+    "timestamp": "2026-10-16T00:05:10Z"
+  }
+]

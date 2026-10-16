@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>07-Shell Portal & Gateway</title>
+    <style>
+        :root {
+            --bg-base: #0a0e17;
+            --bg-sidebar: #0f172a;
+            --bg-card: #1e293b;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg-base); color: var(--text-main); display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; justify-content: space-between; }
+        .brand { font-size: 20px; font-weight: 700; color: #818cf8; display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+        .badge-shell { background: #312e81; color: #c7d2fe; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+        .nav-section-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin: 18px 8px 8px; }
+        .nav-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 6px; color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.2s; margin-bottom: 4px; }
+        .nav-item:hover, .nav-item.active { background: rgba(99, 102, 241, 0.15); color: #c7d2fe; }
+        .nav-port { font-size: 11px; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .main-content { flex: 1; padding: 28px; overflow-y: auto; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 28px; }
+        .tenant-selector { display: flex; align-items: center; gap: 10px; background: var(--bg-card); padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; }
+        .tenant-selector select { background: transparent; color: white; border: none; font-size: 13px; outline: none; cursor: pointer; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+        .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+        .service-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-dot.online { background: var(--success); box-shadow: 0 0 8px rgba(16,185,129,0.6); }
+        .status-dot.offline { background: var(--danger); }
+        .btn { background: var(--primary); color: white; border: none; padding: 9px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.2s; }
+        .btn:hover { background: var(--primary-hover); }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+        .form-control { width: 100%; background: #0f172a; border: 1px solid var(--border); color: white; padding: 10px 12px; border-radius: 6px; font-size: 13px; }
+        textarea.form-control { font-family: monospace; resize: vertical; min-height: 80px; }
+        pre.response-box { background: #0b1120; border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 12px; color: #a5b4fc; max-height: 220px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div>
+            <div class="brand">
+                🌐 Shell Portal
+                <span class="badge-shell">Port 5009</span>
+            </div>
+
+            <div class="nav-section-title">Core & Gateway</div>
+            <a href="/" class="nav-item active">
+                <span>🏠 Portal Overview</span>
+            </a>
+            <a href="http://localhost:5008" target="_blank" class="nav-item">
+                <span>🏛️ 06-Platform-Core</span>
+                <span class="nav-port">:5008</span>
+            </a>
+            <a href="http://localhost:5010" target="_blank" class="nav-item">
+                <span>⚡ 08-Injest Pipeline</span>
+                <span class="nav-port">:5010</span>
+            </a>
+
+            <div class="nav-section-title">Ecosystem Stacks</div>
+            <a href="http://localhost:5001" target="_blank" class="nav-item">
+                <span>📨 01-Kafka Tasks</span>
+                <span class="nav-port">:5001</span>
+            </a>
+            <a href="http://localhost:5002" target="_blank" class="nav-item">
+                <span>🛡️ 02-Keycloak Notes</span>
+                <span class="nav-port">:5002</span>
+            </a>
+            <a href="http://localhost:5005" target="_blank" class="nav-item">
+                <span>🔑 03-IDP Client</span>
+                <span class="nav-port">:5005</span>
+            </a>
+            <a href="http://localhost:5006" target="_blank" class="nav-item">
+                <span>📚 04-RAG Vector Search</span>
+                <span class="nav-port">:5006</span>
+            </a>
+            <a href="http://localhost:5007" target="_blank" class="nav-item">
+                <span>🤖 05-AI-Agents</span>
+                <span class="nav-port">:5007</span>
+            </a>
+        </div>
+
+        <div style="font-size: 11px; color: #64748b; text-align: center; border-top: 1px solid var(--border); padding-top: 14px;">
+            Shell Reverse Proxy Gateway v1.0
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div>
+                <h2>Enterprise Micro-Frontend Shell & Gateway</h2>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Single-pane-of-glass controlling all 8 distributed stack services.</p>
+            </div>
+            <div class="tenant-selector">
+                <span>🏢 Active Tenant:</span>
+                <select id="tenantSelect" onchange="onTenantChange(this.value)">
+                    <option value="tenant-acme-01">Acme Corporation (Enterprise)</option>
+                    <option value="tenant-beta-02">Beta Innovations (Pro)</option>
+                    <option value="tenant-dev-03" selected>Dev Sandbox (Standard)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <!-- Downstream Services Status -->
+            <div class="card">
+                <div class="card-title">
+                    <span>📡 Ecosystem Status Matrix</span>
+                    <button class="btn" style="padding: 4px 10px; font-size: 12px;" onclick="refreshStatuses()">Check Now</button>
+                </div>
+                <div id="serviceList">
+                    {% for s in services %}
+                    <div class="service-row">
+                        <div>
+                            <span class="status-dot {% if s.online %}online{% else %}offline{% endif %}"></span>
+                            <strong>{{ s.name }}</strong>
+                        </div>
+                        <div>
+                            <span style="color: var(--text-muted); font-size: 12px; margin-right: 8px;">{{ s.host }}:{{ s.port }}</span>
+                            <a href="http://{{ s.host }}:{{ s.port }}" target="_blank" style="color: #818cf8; text-decoration: none;">Launch ↗</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Shell Gateway Routing Console -->
+            <div class="card">
+                <div class="card-title">
+                    <span>⚡ Shell API Gateway Proxy</span>
+                    <span style="font-size: 11px; color: #818cf8; background: #312e81; padding: 2px 8px; border-radius: 4px;">Transparent Reverse Proxy</span>
+                </div>
+                <form id="gatewayForm" onsubmit="sendGatewayRequest(event)">
+                    <div style="display: grid; grid-template-columns: 120px 1fr; gap: 10px;" class="form-group">
+                        <div>
+                            <label>Method</label>
+                            <select id="gwMethod" class="form-control">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Target Route via Gateway</label>
+                            <select id="gwRoute" class="form-control">
+                                <option value="/gateway/platform/api/health">/gateway/platform/api/health</option>
+                                <option value="/gateway/platform/api/registry/services">/gateway/platform/api/registry/services</option>
+                                <option value="/gateway/platform/api/flags">/gateway/platform/api/flags</option>
+                                <option value="/gateway/ingest/api/health">/gateway/ingest/api/health</option>
+                                <option value="/gateway/ingest/api/metrics">/gateway/ingest/api/metrics</option>
+                                <option value="/gateway/rag/status">/gateway/rag/status</option>
+                                <option value="/gateway/agents/agents">/gateway/agents/agents</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>JSON Body (for POST)</label>
+                        <textarea id="gwBody" class="form-control" placeholder='{"key": "value"}'></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">Dispatch through Gateway</button>
+                </form>
+                <div style="margin-top: 14px;">
+                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Gateway Response Payload:</div>
+                    <pre class="response-box" id="gwResponse">// Response will appear here...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function sendGatewayRequest(e) {
+            e.preventDefault();
+            const method = document.getElementById('gwMethod').value;
+            const route = document.getElementById('gwRoute').value;
+            const bodyText = document.getElementById('gwBody').value.trim();
+            const resBox = document.getElementById('gwResponse');
+            const tenant = document.getElementById('tenantSelect').value;
+
+            resBox.textContent = 'Routing request through Shell Gateway...';
+            const opts = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Tenant-ID': tenant
+                }
+            };
+            if (method === 'POST' && bodyText) {
+                try {
+                    opts.body = JSON.stringify(JSON.parse(bodyText));
+                } catch(err) {
+                    opts.body = bodyText;
+                }
+            }
+
+            try {
+                const startTime = performance.now();
+                const res = await fetch(route, opts);
+                const data = await res.json();
+                const latency = Math.round(performance.now() - startTime);
+                resBox.textContent = `// HTTP Status: ${res.status} OK | Gateway Roundtrip: ${latency}ms\n\n` + JSON.stringify(data, null, 2);
+            } catch(err) {
+                resBox.textContent = `// Gateway Error:\n${err}`;
+            }
+        }
+
+        async function refreshStatuses() {
+            location.reload();
+        }
+
+        function onTenantChange(tenant) {
+            console.log('Tenant switched to:', tenant);
+        }
+    </script>
+</body>
+</html>
